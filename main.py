@@ -12,7 +12,7 @@ app = FastAPI(
 
 @app.get("/health", status_code=status.HTTP_200_OK)
 def health_check():
-    return {"status": "healthy"}
+    return {"status": "ok"}
 
 
 @app.post("/optimize-energy", status_code=status.HTTP_200_OK)

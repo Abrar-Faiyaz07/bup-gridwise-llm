@@ -41,6 +41,10 @@ Rules:
 1. Return exactly one directive_interpretation per operator note in note_index order.
 2. Hours are 0-indexed (0 to 23). Time windows are start-inclusive and end-exclusive (e.g., 2 PM to 4 PM maps to hours [14, 15]).
 3. "6 PM until 9 PM" maps to hours [18, 19, 20].
+
+solar_reduction: Reduces available solar generation. Set 'factor' to the usable fraction remaining. 
+Example 1: "usable solar is 25%" -> factor = 0.25
+Example 2: "solar generation reduced by 80%" -> factor = 0.20 (since 100% - 80% = 20% remaining)
 """
 
 
@@ -70,3 +74,41 @@ Operator Notes to Interpret:
     )
 
     return LLMInterpretationResult.model_validate_json(response.text)
+
+def sanitize_and_guardrail_directives(directives: List[DirectiveInterpretation]) -> List[dict]:
+    """
+    Enforces deterministic constraints on raw LLM output before passing to PuLP.
+    """
+    sanitized = []
+    for item in directives:
+        d_dict = item.model_dump()
+        
+        # Guardrail 1: no_op must have applies=False and structured_adjustment=None
+        if d_dict["directive_type"] == "no_op" or not d_dict["applies"]:
+            d_dict["applies"] = False
+            d_dict["structured_adjustment"] = None
+            sanitized.append(d_dict)
+            continue
+
+        adj = d_dict.get("structured_adjustment")
+        if adj and "hours" in adj and adj["hours"]:
+            # Guardrail 2: Ensure unique integers 0-23 in strictly ascending order
+            valid_hours = sorted(list(set(
+                int(h) for h in adj["hours"] if isinstance(h, (int, float)) and 0 <= int(h) <= 23
+            )))
+            adj["hours"] = valid_hours
+
+            # Guardrail 3: Solar reduction factor bounds [0.0, 1.0]
+            if d_dict["directive_type"] == "solar_reduction" and "factor" in adj:
+                if adj["factor"] is not None:
+                    adj["factor"] = max(0.0, min(1.0, float(adj["factor"])))
+
+            d_dict["structured_adjustment"] = adj
+            d_dict["applies"] = True
+        else:
+            # Fallback invalid directives without valid hours to no_op
+            d_dict["applies"] = False
+            d_dict["structured_adjustment"] = None
+
+        sanitized.append(d_dict)
+    return sanitized
