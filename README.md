@@ -7,6 +7,17 @@ model, and solves a deterministic linear program to produce a 24-hour
 charge/discharge/grid plan that minimises total cost while honouring every
 directive.
 
+---
+
+## 🌐 Live Deployment & Endpoints
+
+- **Live Service Base URL:** [https://bup-gridwise-llm.vercel.app](https://bup-gridwise-llm.vercel.app)
+- **Health Check (`GET /health`):** [https://bup-gridwise-llm.vercel.app/health](https://bup-gridwise-llm.vercel.app/health)
+- **Interactive Swagger Docs (`GET /docs`):** [https://bup-gridwise-llm.vercel.app/docs](https://bup-gridwise-llm.vercel.app/docs)
+- **Optimization Route (`POST /optimize-energy`):** `https://bup-gridwise-llm.vercel.app/optimize-energy`
+
+---
+
 This repository contains **two runnable pieces**:
 
 | Folder | Purpose | Stack |
