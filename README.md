@@ -253,3 +253,6 @@ provider usage; no persistent user data is stored.
 - SciPy HiGHS / PuLP — continuous linear optimisation
 - Google Gemini — structured-output language model
 - Pytest — verification suite
+
+Visit the [YouTube Link](https://youtu.be/kIi0-Aqsm70) to view the demo.
+
